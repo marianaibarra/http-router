@@ -1,0 +1,21 @@
+{
+  "name": "http-learning",
+  "type": "module",
+  "main": "dist/src/app.js",
+  "scripts": {
+    "build": "swc src -d dist",
+    "start": "node dist/src/app.js",
+    "watch-compile": "swc src -w --out-dir dist",
+    "watch-dev": "nodemon --watch \"dist/**/*\" dist/src/app.js",
+    "dev": "concurrently \"npm run watch-compile\" \"npm run watch-dev\""
+  },
+  "devDependencies": {
+    "@swc/cli": "^0.7.10",
+    "@swc/core": "^1.15.11",
+    "@types/node": "^25.2.3",
+    "chokidar": "^4.0.3",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.11",
+    "typescript": "^5.9.3"
+  }
+}
