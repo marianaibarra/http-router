@@ -7,7 +7,6 @@ const { preflight, corsify } = cors({});
 
 /**
  * TODO:
- * - Añadir más tipos de FormatterResponse
  * - Organizar extensión archivos
  */
 
