@@ -1,19 +1,12 @@
-import { RequestHandler } from "./types/RequestHandler";
-import { RouterType } from "./types/RouterType";
-import { RouterOptions } from "./types/RouterOptions";
-import { RequestFull } from "./types/RequestFull";
-
-// TODO:
-// Añadir manejo de query-params
-// Manejo de cookies
-// middlewares
-// manejo de errores (catch)
-// finally (hooks al final del ciclo)
-// defaults => params disponibles en handler, catch automatico, devolver 404, serializar respuesta (JSON)
+import { RequestHandler } from "./types/RequestHandler.js";
+import { RouterType } from "./types/RouterType.js";
+import { RouterOptions } from "./types/RouterOptions.js";
+import { RequestFull } from "./types/RequestFull.js";
 
 export const Router = ({
   base = "",
   routes = [],
+  ...other
 }: RouterOptions = {}): RouterType =>
   // @ts-ignore
   ({
@@ -58,18 +51,42 @@ export const Router = ({
         query[key] = query[key] ? [].concat(query[key], value as any) : value;
       }
 
-      // find matching route
-      for (let [httpMethod, routeMatch, handlers, path] of routes) {
-        if (
-          httpMethod == request.method &&
-          (match = url.pathname.match(routeMatch))
-        ) {
-          request.params = match.groups || {};
-          request.route = path;
+      t: try {
+        for (let middleware of other.middlewares || [])
+          if ((response = await middleware(request)) != null) break t;
 
-          for (let handler of handlers)
-            if ((response = await handler(request)) != null) return response;
+        // find matching route
+        matchingRoute: for (let [
+          httpMethod,
+          routeMatch,
+          handlers,
+          path,
+        ] of routes) {
+          if (
+            httpMethod == request.method &&
+            (match = url.pathname.match(routeMatch))
+          ) {
+            request.params = match.groups || {};
+            request.route = path;
+
+            for (let handler of handlers)
+              if ((response = await handler(request)) != null)
+                break matchingRoute;
+          }
         }
+      } catch (error: any) {
+        if (!other.catch) throw error;
+        response = await other.catch(error, request);
       }
+
+      try {
+        for (let handler of other.finally || [])
+          response = (await handler(response, request)) ?? response;
+      } catch (error: any) {
+        if (!other.catch) throw error;
+        response = await other.catch(error, request);
+      }
+
+      return response;
     },
   });

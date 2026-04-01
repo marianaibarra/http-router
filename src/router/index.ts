@@ -1,3 +1,3 @@
-import { Router } from './Router.ts';
+import { Router } from './Router.js';
 
 export { Router };

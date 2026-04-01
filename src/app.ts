@@ -1,38 +1,27 @@
-import { Router } from "./router/Router.js";
 import { createServer, IncomingMessage, ServerResponse } from "node:http";
+import { AutoRouter } from "./router/AutoRouter.js";
+import { autoCookieParser } from "./router/cookies-parser.js";
+import { cors } from "./router/cors.js";
 
-const router = Router({
-  routes: [],
+const { preflight, corsify } = cors({});
+
+/**
+ * TODO:
+ * - Añadir más tipos de FormatterResponse
+ * - Organizar extensión archivos
+ */
+
+const autoRouter = AutoRouter({
+  middlewares: [preflight, autoCookieParser],
+  finally: [corsify],
 });
 
-router.get("/", (req) => {
-  // console.log("req", req);
-  return new Response("OK");
+autoRouter.get("/", (req) => {
+  console.log("cookies", req.cookies);
+  return { hola: "mundo" };
 });
 
-router.get("/groups", (req) => {
-  return Response.json([
-    {
-      id: 5,
-      name: "NewJeans",
-      members: ["Minji", "Hanni", "Danielle", "Haerin", "Hyein"],
-      debutYear: 2022,
-    },
-  ]);
-});
-
-router.get("/groups/:id", (req: any) => {
-  // console.log(req.params.id);
-
-  return Response.json([
-    {
-      id: 5,
-      name: "NewJeans",
-      members: ["Minji", "Hanni", "Danielle", "Haerin", "Hyein"],
-      debutYear: 2022,
-    },
-  ]);
-});
+export default autoRouter;
 
 function requestListener(
   handler: (req: Request) => Response | Promise<Response>,
@@ -51,13 +40,8 @@ function requestListener(
         duplex: "half",
       });
 
-      // Logger
-
-      console.log(`Incoming request ${request.method}, ${request.url}`);
-
       const response = await handler(request);
 
-      //   TODO: El router no coloca estado, ni headers por defecto, debe responder con new Response(...)
       res.statusCode = response.status;
 
       response.headers.forEach((value, key) => {
@@ -82,5 +66,5 @@ function requestListener(
   };
 }
 
-const httpServer = createServer(requestListener(router.fetch));
+const httpServer = createServer(requestListener(autoRouter.fetch));
 httpServer.listen(3001);

@@ -1,5 +1,5 @@
-import { Route } from "./Route";
-import { RouteEntry } from "./RouteEntry";
+import { Route } from "./Route.js";
+import { RouteEntry } from "./RouteEntry.js";
 
 export type RouterType = {
   __proto__: RouterType;

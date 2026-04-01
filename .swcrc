@@ -1,6 +1,10 @@
 {
   "$schema": "https://swc.rs/schema.json",
   "jsc": {
+  //   "module": {
+  //   "type": "es6",
+  //   "resolveFully": true
+  // },
     "parser": {
       "syntax": "typescript",
       "tsx": false,
